@@ -165,10 +165,10 @@ const Index = () => {
                   {currentAudio === audio.id ? (
                     <div className="mb-6">
                       <AudioPlayer
-                        title={audio.title}
-                        author={audio.author}
-                        audioUrl={audio.audioUrl}
+                        currentTrack={audio}
+                        playlist={audioContent}
                         onClose={() => setCurrentAudio(null)}
+                        onTrackChange={(trackId) => setCurrentAudio(trackId)}
                       />
                     </div>
                   ) : (

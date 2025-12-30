@@ -4,14 +4,21 @@ import { Slider } from '@/components/ui/slider';
 import { Card, CardContent } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 
-interface AudioPlayerProps {
+interface AudioTrack {
+  id: number;
   title: string;
   author: string;
   audioUrl?: string;
-  onClose?: () => void;
 }
 
-export const AudioPlayer = ({ title, author, audioUrl, onClose }: AudioPlayerProps) => {
+interface AudioPlayerProps {
+  currentTrack: AudioTrack;
+  playlist: AudioTrack[];
+  onClose?: () => void;
+  onTrackChange?: (trackId: number) => void;
+}
+
+export const AudioPlayer = ({ currentTrack, playlist, onClose, onTrackChange }: AudioPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -25,7 +32,10 @@ export const AudioPlayer = ({ title, author, audioUrl, onClose }: AudioPlayerPro
 
     const updateTime = () => setCurrentTime(audio.currentTime);
     const updateDuration = () => setDuration(audio.duration);
-    const handleEnded = () => setIsPlaying(false);
+    const handleEnded = () => {
+      setIsPlaying(false);
+      playNext();
+    };
 
     audio.addEventListener('timeupdate', updateTime);
     audio.addEventListener('loadedmetadata', updateDuration);
@@ -36,7 +46,7 @@ export const AudioPlayer = ({ title, author, audioUrl, onClose }: AudioPlayerPro
       audio.removeEventListener('loadedmetadata', updateDuration);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, []);
+  }, [currentTrack]);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -85,15 +95,31 @@ export const AudioPlayer = ({ title, author, audioUrl, onClose }: AudioPlayerPro
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  const playNext = () => {
+    const currentIndex = playlist.findIndex(track => track.id === currentTrack.id);
+    if (currentIndex < playlist.length - 1) {
+      const nextTrack = playlist[currentIndex + 1];
+      onTrackChange?.(nextTrack.id);
+    }
+  };
+
+  const playPrevious = () => {
+    const currentIndex = playlist.findIndex(track => track.id === currentTrack.id);
+    if (currentIndex > 0) {
+      const prevTrack = playlist[currentIndex - 1];
+      onTrackChange?.(prevTrack.id);
+    }
+  };
+
   return (
     <Card className="animate-fade-in">
       <CardContent className="p-6">
-        <audio ref={audioRef} src={audioUrl} preload="metadata" />
+        <audio ref={audioRef} src={currentTrack.audioUrl} preload="metadata" autoPlay />
         
         <div className="flex items-center justify-between mb-4">
           <div className="flex-1">
-            <h3 className="font-semibold text-lg mb-1">{title}</h3>
-            <p className="text-sm text-muted-foreground">{author}</p>
+            <h3 className="font-semibold text-lg mb-1">{currentTrack.title}</h3>
+            <p className="text-sm text-muted-foreground">{currentTrack.author}</p>
           </div>
           {onClose && (
             <Button variant="ghost" size="icon" onClick={onClose}>
@@ -118,6 +144,15 @@ export const AudioPlayer = ({ title, author, audioUrl, onClose }: AudioPlayerPro
           </div>
 
           <div className="flex items-center justify-center gap-4">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={playPrevious}
+              disabled={playlist.findIndex(t => t.id === currentTrack.id) === 0}
+            >
+              <Icon name="SkipBack" size={18} />
+            </Button>
+
             <Button variant="outline" size="icon" onClick={skipBackward}>
               <Icon name="RotateCcw" size={18} />
             </Button>
@@ -132,6 +167,15 @@ export const AudioPlayer = ({ title, author, audioUrl, onClose }: AudioPlayerPro
             
             <Button variant="outline" size="icon" onClick={skipForward}>
               <Icon name="RotateCw" size={18} />
+            </Button>
+
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={playNext}
+              disabled={playlist.findIndex(t => t.id === currentTrack.id) === playlist.length - 1}
+            >
+              <Icon name="SkipForward" size={18} />
             </Button>
           </div>
 
