@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import Icon from '@/components/ui/icon';
+import { AudioPlayer } from '@/components/AudioPlayer';
 
 const Index = () => {
   const [currentAudio, setCurrentAudio] = useState<number | null>(null);
@@ -17,21 +18,24 @@ const Index = () => {
       title: "Русские просторы",
       author: "Автор произведения",
       duration: "5:30",
-      description: "Аудиопроизведение о красоте русской природы"
+      description: "Аудиопроизведение о красоте русской природы",
+      audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
     },
     {
       id: 2,
       title: "Родные напевы",
       author: "Автор произведения",
       duration: "4:15",
-      description: "Традиционные мелодии нашей земли"
+      description: "Традиционные мелодии нашей земли",
+      audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
     },
     {
       id: 3,
       title: "Голоса предков",
       author: "Автор произведения",
       duration: "6:45",
-      description: "Истории и сказания русского народа"
+      description: "Истории и сказания русского народа",
+      audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
     }
   ];
 
@@ -158,22 +162,25 @@ const Index = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center gap-4 mb-4">
-                    <Button
-                      variant={currentAudio === audio.id ? "default" : "outline"}
-                      size="lg"
-                      onClick={() => setCurrentAudio(currentAudio === audio.id ? null : audio.id)}
-                    >
-                      <Icon name={currentAudio === audio.id ? "Pause" : "Play"} size={20} className="mr-2" />
-                      {currentAudio === audio.id ? "Пауза" : "Воспроизвести"}
-                    </Button>
-                  </div>
-
-                  {currentAudio === audio.id && (
-                    <div className="bg-muted/50 p-4 rounded-lg animate-fade-in">
-                      <div className="h-2 bg-muted rounded-full overflow-hidden">
-                        <div className="h-full bg-primary w-1/3 rounded-full"></div>
-                      </div>
+                  {currentAudio === audio.id ? (
+                    <div className="mb-6">
+                      <AudioPlayer
+                        title={audio.title}
+                        author={audio.author}
+                        audioUrl={audio.audioUrl}
+                        onClose={() => setCurrentAudio(null)}
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-4 mb-4">
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        onClick={() => setCurrentAudio(audio.id)}
+                      >
+                        <Icon name="Play" size={20} className="mr-2" />
+                        Воспроизвести
+                      </Button>
                     </div>
                   )}
 
