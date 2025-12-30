@@ -1,0 +1,18 @@
+{
+  "tests": [
+    {
+      "name": "GET audio content list",
+      "method": "GET",
+      "path": "/?type=audio",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "GET video content list",
+      "method": "GET",
+      "path": "/?type=video",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    }
+  ]
+}

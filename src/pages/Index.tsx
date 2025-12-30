@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -6,55 +6,58 @@ import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import Icon from '@/components/ui/icon';
 import { AudioPlayer } from '@/components/AudioPlayer';
+import { UploadMediaDialog } from '@/components/UploadMediaDialog';
 
 const Index = () => {
   const [currentAudio, setCurrentAudio] = useState<number | null>(null);
   const [comments, setComments] = useState<{ [key: string]: Array<{ author: string; text: string; date: string }> }>({});
   const [newComment, setNewComment] = useState<{ [key: string]: { author: string; text: string } }>({});
+  const [audioContent, setAudioContent] = useState<any[]>([]);
+  const [videoContent, setVideoContent] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const audioContent = [
-    {
-      id: 1,
-      title: "Русские просторы",
-      author: "Автор произведения",
-      duration: "5:30",
-      description: "Аудиопроизведение о красоте русской природы",
-      audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
-    },
-    {
-      id: 2,
-      title: "Родные напевы",
-      author: "Автор произведения",
-      duration: "4:15",
-      description: "Традиционные мелодии нашей земли",
-      audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
-    },
-    {
-      id: 3,
-      title: "Голоса предков",
-      author: "Автор произведения",
-      duration: "6:45",
-      description: "Истории и сказания русского народа",
-      audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+  const fetchAudioContent = async () => {
+    try {
+      const response = await fetch('https://functions.poehali.dev/8cdb8115-479c-47eb-8bba-55fcc3937026?type=audio');
+      const data = await response.json();
+      setAudioContent(data.map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        author: item.author,
+        duration: item.duration,
+        description: item.description,
+        audioUrl: item.audio_url
+      })));
+    } catch (error) {
+      console.error('Error fetching audio:', error);
     }
-  ];
+  };
 
-  const videoContent = [
-    {
-      id: 1,
-      title: "Времена года России",
-      duration: "12:30",
-      thumbnail: "https://cdn.poehali.dev/projects/23a6611e-5dd1-4bb1-b1a1-0449d1a88e06/files/f1358683-346a-43d2-bdfa-a59ef02c7f60.jpg",
-      description: "Документальный фильм о красоте русской природы"
-    },
-    {
-      id: 2,
-      title: "Культурное наследие",
-      duration: "15:20",
-      thumbnail: "https://cdn.poehali.dev/projects/23a6611e-5dd1-4bb1-b1a1-0449d1a88e06/files/94b5573a-e968-47a2-9242-2e10261c4a54.jpg",
-      description: "Обзор традиций и обычаев"
+  const fetchVideoContent = async () => {
+    try {
+      const response = await fetch('https://functions.poehali.dev/8cdb8115-479c-47eb-8bba-55fcc3937026?type=video');
+      const data = await response.json();
+      setVideoContent(data.map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        duration: item.duration,
+        thumbnail: item.thumbnail_url || 'https://cdn.poehali.dev/projects/23a6611e-5dd1-4bb1-b1a1-0449d1a88e06/files/f1358683-346a-43d2-bdfa-a59ef02c7f60.jpg',
+        description: item.description,
+        videoUrl: item.video_url
+      })));
+    } catch (error) {
+      console.error('Error fetching video:', error);
     }
-  ];
+  };
+
+  useEffect(() => {
+    const loadContent = async () => {
+      setLoading(true);
+      await Promise.all([fetchAudioContent(), fetchVideoContent()]);
+      setLoading(false);
+    };
+    loadContent();
+  }, []);
 
   const photoGallery = [
     {
@@ -142,9 +145,10 @@ const Index = () => {
           <div className="text-center mb-12 animate-fade-in">
             <Icon name="Music" size={48} className="mx-auto mb-4 text-primary" />
             <h2 className="text-5xl font-bold mb-4">Аудиотека</h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-6">
               Коллекция авторских аудиопроизведений о русской культуре
             </p>
+            <UploadMediaDialog type="audio" onSuccess={fetchAudioContent} />
           </div>
 
           <div className="grid gap-6">
@@ -243,9 +247,10 @@ const Index = () => {
           <div className="text-center mb-12 animate-fade-in">
             <Icon name="Video" size={48} className="mx-auto mb-4 text-primary" />
             <h2 className="text-5xl font-bold mb-4">Видеогалерея</h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-6">
               Авторские видеопроизведения о русской природе и культуре
             </p>
+            <UploadMediaDialog type="video" onSuccess={fetchVideoContent} />
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
